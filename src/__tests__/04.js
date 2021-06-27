@@ -19,8 +19,7 @@ test('can also toggle with the custom button', () => {
   expect(toggleButton).toBeChecked()
 })
 
-// 💯 remove the `.skip` if you're working on the extra credit
-test.skip('passes custom props to the custom-button', () => {
+test('passes custom props to the custom-button', () => {
   const {toggleButton} = renderToggle(<App />)
   const customButton = screen.getByLabelText('custom-button')
   expect(customButton.getAttribute('id')).toBe('custom-button-id')
@@ -28,4 +27,19 @@ test.skip('passes custom props to the custom-button', () => {
   userEvent.click(customButton)
 
   expect(toggleButton).toBeChecked()
+})
+
+test('calls all the onClick functions', () => {
+  const info = jest.spyOn(console, 'info')
+  const {toggleButton} = renderToggle(<App />)
+  const customButton = screen.getByLabelText('custom-button')
+  expect(customButton.getAttribute('id')).toBe('custom-button-id')
+
+  userEvent.click(customButton)
+
+  expect(info).toHaveBeenCalledTimes(1)
+  expect(info).toHaveBeenCalledWith('onButtonClick')
+  expect(toggleButton).toBeChecked()
+  
+  info.mockRestore()
 })
