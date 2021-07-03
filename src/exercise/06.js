@@ -81,8 +81,12 @@ function useToggle({
   const onIsControlled = controlledOn !== null;
   const on = onIsControlled ? controlledOn : state.on;
 
-  useControlledSwitchWarning(controlledOn, 'on', 'useToggle');
-  useReadOnlyWarning(controlledOn, onChange, readOnly, 'on', 'onChange', 'readOnly', 'initialOn', 'useToggle');
+  if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useControlledSwitchWarning(controlledOn, 'on', 'useToggle');
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useReadOnlyWarning(controlledOn, onChange, readOnly, 'on', 'onChange', 'readOnly', 'initialOn', 'useToggle');
+  }
 
   function dispatchWithOnChange(action) {
     if (!onIsControlled) {
