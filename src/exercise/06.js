@@ -27,6 +27,25 @@ function toggleReducer(state, {type, initialState}) {
   }
 }
 
+function useControlledSwitchWarning(isControlled) {
+  const {current: onWasControlled} = React.useRef(isControlled)
+
+  React.useEffect(() => {
+    warning(
+      !(isControlled && !onWasControlled),
+      '`useToggle` is changing from uncontrolled to be controlled. Components should not switch '
+      + 'from uncontrolled to controlled (or vice versa). Decide between using a controlled or '
+      + 'uncontrolled `useToggle` for the lifetime of the component. Check the `on` prop.',
+    )
+    warning(
+      !(!isControlled && onWasControlled),
+      '`useToggle` is changing from controlled to be uncontrolled. Components should not switch '
+      + 'from controlled to uncontrolled (or vice versa). Decide between using a controlled or '
+      + 'uncontrolled `useToggle` for the lifetime of the component. Check the `on` prop.',
+    )
+  }, [isControlled, onWasControlled]);
+}
+
 function useToggle({
   initialOn = false,
   reducer = toggleReducer,
@@ -40,27 +59,15 @@ function useToggle({
   const on = onIsControlled ? controlledOn : state.on;
   const isUnintentionallyImmutable = onIsControlled && onChange === null && !readOnly;
 
-  const {current: onWasControlled} = React.useRef(onIsControlled)
+  useControlledSwitchWarning(onIsControlled);
   React.useEffect(() => {
-    warning(
-      !(onIsControlled && !onWasControlled),
-      '`useToggle` is changing from uncontrolled to be controlled. Components should not switch '
-      + 'from uncontrolled to controlled (or vice versa). Decide between using a controlled or '
-      + 'uncontrolled `useToggle` for the lifetime of the component. Check the `on` prop.',
-    )
-    warning(
-      !(!onIsControlled && onWasControlled),
-      '`useToggle` is changing from controlled to be uncontrolled. Components should not switch '
-      + 'from controlled to uncontrolled (or vice versa). Decide between using a controlled or '
-      + 'uncontrolled `useToggle` for the lifetime of the component. Check the `on` prop.',
-    )
     warning(
       !isUnintentionallyImmutable,
       'Failed prop type: You provided a `on` prop to a Toggle without an `onChange` handler. '
       + 'This will render a read-only field. If the field should be mutable use `initialOn`. '
       + 'Otherwise, set either `onChange` or `readOnly`.'
     )
-  }, [isUnintentionallyImmutable, onIsControlled, onWasControlled]);
+  }, [isUnintentionallyImmutable]);
 
   function dispatchWithOnChange(action) {
     if (!onIsControlled) {
@@ -104,6 +111,7 @@ function Toggle({on: controlledOn, onChange, readOnly}) {
 
 function App() {
   const [bothOn, setBothOn] = React.useState(false)
+  const [x, setX] = React.useState(false)
   const [timesClicked, setTimesClicked] = React.useState(0)
 
   function handleToggleChange(state, action) {
@@ -122,7 +130,7 @@ function App() {
   return (
     <div>
       <div>
-        <Toggle on={bothOn} onChange={handleToggleChange}/>
+        <Toggle on={x ? undefined : bothOn} onChange={handleToggleChange}/>
         <Toggle on={bothOn} onChange={handleToggleChange} />
       </div>
       {timesClicked > 4 ? (
@@ -138,9 +146,8 @@ function App() {
       <div>
         <div>Uncontrolled Toggle:</div>
         <Toggle
-          onChange={(...args) =>
-            console.info('Uncontrolled Toggle onChange', ...args)
-          }
+          on={x}
+          onChange={() => setX(!x)}
         />
       </div>
     </div>
